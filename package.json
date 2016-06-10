@@ -1,0 +1,31 @@
+{
+  "name": "ace-template",
+  "version": "1.0.0",
+  "description": "Angular Cordova/Electron template with Gulp handling the build process",
+  "main": "index.html",
+  "scripts": {
+    "test": "gulp build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bored0ne/ace-template.git"
+  },
+  "keywords": [
+    "Angular",
+    "Cordova",
+    "Electron",
+    "Gulp",
+    "Javascript"
+  ],
+  "author": "Stephen Seaton-Blanchard",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Bored0ne/ace-template/issues"
+  },
+  "homepage": "https://github.com/Bored0ne/ace-template#readme",
+  "dependencies": {
+    "del": "^2.2.0",
+    "fs-extra": "^0.30.0",
+    "gulp": "^3.9.1"
+  }
+}
