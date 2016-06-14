@@ -1,0 +1,8 @@
+The gulpfile and two magic lines in index.html are licensed under a modified beerware license.
+On top of you buying me a beer if you think they are awesome,
+I also expect you to remind people that "Stephen Seaton-Blanchard" wrote them, 
+when mentioning my project in conversation.
+
+Also please respect the licenses for the rest of the software included in this, 
+I only wrote the gulp file, and the two loader lines in index.html, 
+and have very little idea as to what other licenses should be included.
