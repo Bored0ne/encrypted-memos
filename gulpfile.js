@@ -5,7 +5,7 @@ var pack = require('./package.json');
 var exec = require('child_process').execSync;
 
 var paths = {
-	www: 'www/',
+	www: 'www/dist/',
 	cordova: 'cordova/',
 	cordovaFiles: 'cordova/*',
 	cordovaWWW: 'cordova/www/',
@@ -24,12 +24,18 @@ var makeIfNotExist = function($dir) {
 	}
 }
 
+var rebuildWWW = function() {
+	exec('cd www && grunt build', {timeout: 100000}, function (err, stdout, stderr){
+		console.log(stdout, stderr);
+	});
+}
+
 var copyWWW = function() {
 	// console.log(paths.cordovaWWW);
-	fs.copySync('www', paths.cordovaWWW, {clobber: true, dereference: true, preserveTimestamps: true}, function (err){
+	fs.copySync(paths.www, paths.cordovaWWW, {clobber: true, dereference: true, preserveTimestamps: true}, function (err){
 		if (err) console.log(err);
 	});
-	fs.copySync('www', paths.electronWWW, {clobber: true, dereference: true, preserveTimestamps: true}, function (err){
+	fs.copySync(paths.www, paths.electronWWW, {clobber: true, dereference: true, preserveTimestamps: true}, function (err){
 		if (err) console.log(err);
 	});
 }
@@ -44,6 +50,7 @@ var wipe = function() {
 }
 
 var refreshAll = function() {
+	rebuildWWW();
 	deleteWWW();
 	copyWWW();
 }
@@ -71,7 +78,7 @@ gulp.task('build', function() {
 		exec('cordova create cordova && cd cordova && cordova platform add ios', {timeout: 100000}, function (err, stdout, stderr){
 			console.log(err + stderr + stdout);
 		});
-		fs.copy('.resources/main.js', paths.electron + 'main.js', {timeout: 100000}, function (err){
+		fs.copySync('.resources/main.js', paths.electron + 'main.js', {timeout: 100000}, function (err){
 			if (err) return console.error(err)
 		});
 	}
@@ -79,7 +86,7 @@ gulp.task('build', function() {
 });
 
 gulp.task('serve-electron', ['build'], function() {
-		exec('cd ' + paths.electron + ' && electron main.js &', {detached: true}, function (err, stdout, stderr){
+		exec('cd ' + paths.electron + ' && electron main.js', {detached: true}, function (err, stdout, stderr){
 			console.log(stdout);
 		});
 });
