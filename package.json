@@ -1,28 +1,30 @@
 {
-  "name": "ace-template",
+  "name": "encrypted-memo",
   "version": "1.0.0",
-  "description": "Angular Cordova/Electron template with Gulp handling the build process",
+  "description": "Cross Platform Encrypted Memo Store",
   "main": "index.html",
   "scripts": {
     "test": "gulp build"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Bored0ne/ace-template.git"
+    "url": "git+https://bitbucket.org/Bored0ne/encrypted-memo-app.git"
   },
   "keywords": [
     "Angular",
     "Cordova",
     "Electron",
     "Gulp",
-    "Javascript"
+    "Javascript",
+    "Memo",
+    "Encryption"
   ],
   "author": "Stephen Seaton-Blanchard",
-  "license": "ISC",
+  "license": "Beerware",
   "bugs": {
-    "url": "https://github.com/Bored0ne/ace-template/issues"
+    "url": "https://bitbucket.org/Bored0ne/encrypted-memo-app/issues"
   },
-  "homepage": "https://github.com/Bored0ne/ace-template#readme",
+  "homepage": "https://bitbucket.org/Bored0ne/encrypted-memo-app",
   "dependencies": {
     "del": "^2.2.0",
     "fs-extra": "^0.30.0",
