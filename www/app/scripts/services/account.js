@@ -2,21 +2,21 @@
 
 /**
  * @ngdoc service
- * @name wwwApp.accountService
+ * @name wwwApp.account
  * @description
- * # accountService
+ * # account
  * Service in the wwwApp.
  */
 angular.module('wwwApp')
-  .service('accountService', function ($http, $interval, $scope) {
+  .service('accountService', function ($http, $interval) {
     // AngularJS will instantiate a singleton by calling "new" on this function
-    var BASE = 'https://127.0.0.1/memoapi/';
-
+    var BASE = 'http://127.0.0.1/memoapi/';
+    this.apiKey = '';
     this.login = function(badge, pin){
       var url = BASE + 'login';
       $http.post(url, {badge: badge, pin: pin})
         .success(function(key){
-          $scope.apiKey = key;
+          this.apiKey = key;
         })
         .error(function (data) {
           console.log (data);

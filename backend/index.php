@@ -6,6 +6,7 @@ require 'vendor/autoload.php';
 require 'config.php';
 
 $app = new \Slim\App;
+// $app->response->headers->set('Access-Control-Allow-Origin', '*');
 unset($app->getContainer()['errorHandler']);
 
 function MakeMemoTable($connect)
@@ -37,13 +38,13 @@ SQL;
   mysqli_query($connect, $query) or die(mysqli_error($connect));
 }
 
-$app->post('/memoapi/memos', function(Request $request, Response $response){
-  $status = 200;
+$app->delete('/memoapi/memos/{id}', function ($request, $response, $args)
+{
   $connect = mysqli_connect(Config::dbHost, Config::dbUser, Config::dbPass);
   mysqli_select_db($connect, Config::dbName);
-  $key = mysqli_real_escape_string($connect, $request->getHeader('key')[0]);
-  $memo = mysqli_real_escape_string($connect, $request->getBody());
-
+  // $route = $request->getRoute();
+  $id = mysqli_real_escape_string($connect, $args['id']);
+  $key = mysqli_real_escape_string($connect, $request->getHeader('key'));
 
   $query = <<<SQL
     SELECT id
@@ -52,35 +53,81 @@ $app->post('/memoapi/memos', function(Request $request, Response $response){
 SQL;
   $result = mysqli_query($connect, $query) OR $response->withStatus('key not associated with account' . PHP_EOL);
   $assoc = mysqli_fetch_assoc($result);
-  $id = $assoc['id'];
+  $accountId = $assoc['id'];
 
   $query = <<<SQL
-    INSERT INTO memos (memo, account_id, timestamp)
-    VALUES ('{$memo}', '{$id}', CURRENT_TIMESTAMP())
+    DELETE FROM memos
+    WHERE id = {$id}
+      AND account_id = {$accountId}
 SQL;
-  mysqli_query($connect, $query) OR DIE(mysqli_error($connect));
+  mysqli_query($connect, $query);
+});
 
+$app->map(['PUT', 'POST'], '/memoapi/memos[/{id}]', function($request, $response, $args){
+  $status = 200;
+  $connect = mysqli_connect(Config::dbHost, Config::dbUser, Config::dbPass);
+  mysqli_select_db($connect, Config::dbName);
+  $key = mysqli_real_escape_string($connect, $request->getHeader('key')[0]);
+  $memo = mysqli_real_escape_string($connect, $request->getBody());
+  @$id = mysqli_real_escape_string($connect, $args['id']);
 
+  $query = <<<SQL
+    SELECT id
+    FROM accounts
+    WHERE auth_key = '{$key}'
+SQL;
+  $result = mysqli_query($connect, $query) OR $response->withStatus('key not associated with account' . PHP_EOL);
+  $assoc = mysqli_fetch_assoc($result);
+  $accountId = $assoc['id'];
+  if (!empty($memo))
+  {
+    if (!empty($id))
+    {
+      $query = <<<SQL
+        UPDATE memos
+        SET memo = '{$memo}', timestamp = CURRENT_TIMESTAMP()
+        WHERE id = '{$id}'
+          AND account_id = '{$accountId}'
+SQL;
 
+$response->getBody()->write(var_export($query, true));
+    }
+    else
+    {
+      $query = <<<SQL
+        INSERT INTO memos (memo, account_id, timestamp)
+        VALUES ('{$memo}', '{$accountId}', CURRENT_TIMESTAMP())
+SQL;
+    }
+    mysqli_query($connect, $query) OR DIE(mysqli_error($connect));
+  }
+
+  $response->header('Access-Control-Allow-Origin', '*');
   return $response->withStatus($status);
 });
 
-$app->get('/memoapi/memos', function(Request $request, Response $response){
+$app->get('/memoapi/memos[/{id}]', function($request, $response, $args){
   $status = 200;
 
   $connect = mysqli_connect(Config::dbHost, Config::dbUser, Config::dbPass);
   mysqli_select_db($connect, Config::dbName);
 
   $key = mysqli_real_escape_string($connect, $request->getHeader('key')[0]);
-  $quantity = mysqli_real_escape_string($connect, $request->getHeader('quantity')[0]);
-
+  @$quantity = mysqli_real_escape_string($connect, $request->getHeader('quantity')[0]);
+  @$id = mysqli_real_escape_string($connect, $args['id']);
 
   $query = <<<SQL
-    SELECT m.memo
+    SELECT m.id, m.memo
     FROM memos m
     LEFT JOIN accounts a ON m.account_id = a.id
     WHERE a.auth_key = '{$key}'
 SQL;
+  if (!empty($id))
+  {
+    $query .= <<<SQL
+      AND m.id = '{$id}'
+SQL;
+  }
   if (!empty($quantity) && is_numeric($quantity))
   {
     $query .= <<<SQL
@@ -94,7 +141,12 @@ SQL;
 
   $response->getBody()->write(json_encode($assoc));
 
+  $response->header('Access-Control-Allow-Origin', '*');
   return $response->withStatus($status);
+});
+
+$app->options('/memoapi/login', function (Request $request, Response $response) {
+  $response->header('Access-Control-Allow-Origin', '*');
 });
 
 $app->post('/memoapi/login', function (Request $request, Response $response) {
@@ -104,10 +156,12 @@ $app->post('/memoapi/login', function (Request $request, Response $response) {
   $badge = mysqli_real_escape_string($connect, $request->getHeader('badge')[0]);
   $pin = mysqli_real_escape_string($connect, $request->getHeader('pin')[0]);
 
+$response->getBody().write(var_export($request, true));
+$response->header('Access-Control-Allow-Origin', '*');
+return $response;
   if (!empty($badge) && !empty($pin))
   {
     $md5 = md5($badge . $pin);
-
 
     $query = <<<SQL
       SELECT *
@@ -155,6 +209,7 @@ SQL;
     $status = 400;
   }
 
+  $response->header('Access-Control-Allow-Origin', '*');
   return $response->withStatus($status);
 });
 
