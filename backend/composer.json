@@ -1,0 +1,15 @@
+{
+    "name": "bored0ne/memo-backend",
+    "description": "Back end server for encrypted memos",
+    "type": "project",
+    "license": "beerware",
+    "authors": [
+        {
+            "name": "Stephen Seaton-Blanchard",
+            "email": "stephen@seatoncode.com"
+        }
+    ],
+    "require": {
+        "slim/slim": "^3.0"
+    }
+}

@@ -1,3 +1,4 @@
 cordova/*
 electron/*
 node_modules/*
+backend/vendor/*

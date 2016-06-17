@@ -2,13 +2,13 @@
 
 /**
  * @ngdoc function
- * @name wwwApp.controller:MainCtrl
+ * @name wwwApp.controller:AccountCtrl
  * @description
- * # MainCtrl
+ * # AccountCtrl
  * Controller of the wwwApp
  */
 angular.module('wwwApp')
-  .controller('MainCtrl', function () {
+  .controller('AccountCtrl', function () {
     this.awesomeThings = [
       'HTML5 Boilerplate',
       'AngularJS',
