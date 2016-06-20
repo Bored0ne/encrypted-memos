@@ -2,11 +2,11 @@
   <div class="panel panel-default">
     <div class="panel-heading">
       <button type="button" name="New" ng-click="NewMemo(newMemo)">New Memo</button>
-      <input type="text" name="memo" value="" ng-model='newMemo.memo' ng-keypress='NewMemo(newMemo, $event)'>
+      <input id="txtMemo" type="text" name="memo" value="" ng-model='newMemo' ng-keypress='NewMemo(newMemo, $event)'>
     </div>
     <div class="panel-body">
       <ul>
-        <li ng-repeat='memo in memos track by $index'>
+        <li ng-repeat='memo in MemoList track by $index'>
           {{memo.memo}}
           <button type="button" name="Delete" class='btn btn-sm btn-danger' ng-click="DeleteMemo(memo.id)">X</button>
         </li>

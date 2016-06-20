@@ -1,4 +1,10 @@
 <?php
+header('Access-Control-Allow-Origin: *');
+header("Access-Control-Allow-Credentials: true");
+header('Access-Control-Allow-Methods: GET, PUT, POST, DELETE');
+header('Access-Control-Max-Age: 1000');
+header('Access-Control-Allow-Headers: Content-Type, Content-Range, Content-Disposition, Content-Description, key');
+
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 
@@ -6,13 +12,12 @@ require 'vendor/autoload.php';
 require 'config.php';
 
 $app = new \Slim\App;
-// $app->response->headers->set('Access-Control-Allow-Origin', '*');
 unset($app->getContainer()['errorHandler']);
 
 function MakeMemoTable($connect)
 {
   $query = <<<SQL
-    CREATE TABLE `memos`.`memos` (
+    CREATE TABLE IF NOT EXISTS `memos`.`memos` (
       `id` INT NOT NULL AUTO_INCREMENT COMMENT '',
       `memo` TEXT NOT NULL COMMENT '',
       `account_id` INT NOT NULL COMMENT '',
@@ -30,7 +35,7 @@ function MakeAccountTable($connect)
     CREATE TABLE IF NOT EXISTS `memos`.`accounts` (
       `id` INT NOT NULL AUTO_INCREMENT COMMENT '',
       `badge` VARCHAR(45) NOT NULL COMMENT '',
-      `auth_key` VARCHAR(45) NOT NULL COMMENT '',
+      `auth_key` VARCHAR(60) NOT NULL COMMENT '',
       PRIMARY KEY (`id`)  COMMENT '',
       UNIQUE INDEX `id_UNIQUE` (`id` ASC)  COMMENT '',
       UNIQUE INDEX `badge_UNIQUE` (`badge` ASC)  COMMENT '');
@@ -40,11 +45,12 @@ SQL;
 
 $app->delete('/memoapi/memos/{id}', function ($request, $response, $args)
 {
+  $status = 200;
   $connect = mysqli_connect(Config::dbHost, Config::dbUser, Config::dbPass);
   mysqli_select_db($connect, Config::dbName);
-  // $route = $request->getRoute();
+
   $id = mysqli_real_escape_string($connect, $args['id']);
-  $key = mysqli_real_escape_string($connect, $request->getHeader('key'));
+  $key = mysqli_real_escape_string($connect, $request->getHeader('key')[0]);
 
   $query = <<<SQL
     SELECT id
@@ -60,15 +66,20 @@ SQL;
     WHERE id = {$id}
       AND account_id = {$accountId}
 SQL;
-  mysqli_query($connect, $query);
+  $result = mysqli_query($connect, $query) OR $status = 500;
+
+  return $response->withStatus($status);
 });
 
 $app->map(['PUT', 'POST'], '/memoapi/memos[/{id}]', function($request, $response, $args){
   $status = 200;
   $connect = mysqli_connect(Config::dbHost, Config::dbUser, Config::dbPass);
   mysqli_select_db($connect, Config::dbName);
-  $key = mysqli_real_escape_string($connect, $request->getHeader('key')[0]);
-  $memo = mysqli_real_escape_string($connect, $request->getBody());
+
+  $body = json_decode($request->getBody(), true);
+
+  $key = mysqli_real_escape_string($connect, $body['key']);
+  $memo = mysqli_real_escape_string($connect, $body['memo']);
   @$id = mysqli_real_escape_string($connect, $args['id']);
 
   $query = <<<SQL
@@ -76,8 +87,9 @@ $app->map(['PUT', 'POST'], '/memoapi/memos[/{id}]', function($request, $response
     FROM accounts
     WHERE auth_key = '{$key}'
 SQL;
-  $result = mysqli_query($connect, $query) OR $response->withStatus('key not associated with account' . PHP_EOL);
+  $result = mysqli_query($connect, $query) OR $response->getBody()->write('key not associated with account' . PHP_EOL);
   $assoc = mysqli_fetch_assoc($result);
+
   $accountId = $assoc['id'];
   if (!empty($memo))
   {
@@ -89,8 +101,6 @@ SQL;
         WHERE id = '{$id}'
           AND account_id = '{$accountId}'
 SQL;
-
-$response->getBody()->write(var_export($query, true));
     }
     else
     {
@@ -99,10 +109,9 @@ $response->getBody()->write(var_export($query, true));
         VALUES ('{$memo}', '{$accountId}', CURRENT_TIMESTAMP())
 SQL;
     }
-    mysqli_query($connect, $query) OR DIE(mysqli_error($connect));
+    mysqli_query($connect, $query) OR $status = 500;
   }
 
-  $response->header('Access-Control-Allow-Origin', '*');
   return $response->withStatus($status);
 });
 
@@ -135,33 +144,34 @@ SQL;
 SQL;
   }
   $result = mysqli_query($connect, $query) or die(mysqli_error($connect));
-  while ($row = $result->fetch_assoc()) {
+  $assoc = array();
+  while ($row = mysqli_fetch_assoc($result)) {
     $assoc[] = $row;
   }
+  if(!empty($assoc))
+  {
+    $response->getBody()->write(json_encode($assoc));
+  }
+  else
+  {
+    $response->getBody()->write('{}');
+  }
 
-  $response->getBody()->write(json_encode($assoc));
 
-  $response->header('Access-Control-Allow-Origin', '*');
   return $response->withStatus($status);
-});
-
-$app->options('/memoapi/login', function (Request $request, Response $response) {
-  $response->header('Access-Control-Allow-Origin', '*');
 });
 
 $app->post('/memoapi/login', function (Request $request, Response $response) {
   $connect = mysqli_connect(Config::dbHost, Config::dbUser, Config::dbPass);
   mysqli_select_db($connect, Config::dbName);
+  $body = json_decode($request->getBody(), true);
+  $badge = mysqli_real_escape_string($connect, $body['badge']);
+  $pin = mysqli_real_escape_string($connect, $body['pin']);
 
-  $badge = mysqli_real_escape_string($connect, $request->getHeader('badge')[0]);
-  $pin = mysqli_real_escape_string($connect, $request->getHeader('pin')[0]);
-
-$response->getBody().write(var_export($request, true));
-$response->header('Access-Control-Allow-Origin', '*');
-return $response;
   if (!empty($badge) && !empty($pin))
   {
-    $md5 = md5($badge . $pin);
+    $str = $badge . $pin;
+    $md5 = sha1($str);
 
     $query = <<<SQL
       SELECT *
@@ -169,10 +179,16 @@ return $response;
       WHERE badge = '{$badge}'
 SQL;
 
-    $result = mysqli_query($connect, $query) or die(mysqli_error($connect));
+    $result = mysqli_query($connect, $query);
     $assoc = mysqli_fetch_assoc($result);
     if (!empty($assoc))
     {
+      if ($md5 !== $assoc['auth_key']){
+        $status = 401;
+        $response->getBody()->write($assoc['auth_key'] . ' ' . $md5 . ' ');
+        $response->getBody()->write('Bad Username/Password Combo');
+        return $response->withStatus($status);
+      }
       $response->getBody()->write($assoc['auth_key']);
       $status = 200;
     }
@@ -208,8 +224,6 @@ SQL;
     }
     $status = 400;
   }
-
-  $response->header('Access-Control-Allow-Origin', '*');
   return $response->withStatus($status);
 });
 

@@ -8,14 +8,22 @@
  * Controller of the wwwApp
  */
 angular.module('wwwApp')
-  .controller('AccountCtrl', function ($scope, $window, accountService) {
+  .controller('AccountCtrl', function ($scope, $window, accountService, memoService) {
     this.awesomeThings = [
       'HTML5 Boilerplate',
       'AngularJS',
       'Karma'
     ];
-    $scope.apiKey = '';
-    $scope.LogIn = new function(user){
-      $scope.apiKey = accountService.login($scope.username, $scope.password);
+    $scope.LogMeIn = function LogMeIn(event){
+      if (!event || event.which === 13){
+        accountService.login($scope.username, $scope.password, function(status){
+          if (status){
+            memoService.GetMemos();
+            window.$('.navbar-collapse').collapse('hide');
+          } else {
+            memoService.GetMemos();
+          }
+        });
+      }
     };
   });

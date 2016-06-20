@@ -14,15 +14,15 @@ angular.module('wwwApp')
       'AngularJS',
       'Karma'
     ];
-    // $scope.log = $log;
-    $scope.memos = memoService.memoList;
-    $scope.DeleteMemo = function(id){
-      memoService.DelMemo($scope.apiKey, id);
+    $scope.MemoList = memoService.memoList;
+    $scope.DeleteMemo = function DeleteMemo(id){
+      memoService.DelMemo(id);
     };
-    $scope.NewMemo = function(memo, event){
+    $scope.NewMemo = function NewMemo(memo, event){
       if (!event || event.which === 13){
-        if (memo.memo){
-          memoService.AddMemo($scope.apiKey, memo.memo);
+        if (memo){
+          memoService.AddMemo(memo);
+          window.$('#txtMemo').val('');
         }
       }
     };
