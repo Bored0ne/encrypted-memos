@@ -185,7 +185,6 @@ SQL;
     {
       if ($md5 !== $assoc['auth_key']){
         $status = 401;
-        $response->getBody()->write($assoc['auth_key'] . ' ' . $md5 . ' ');
         $response->getBody()->write('Bad Username/Password Combo');
         return $response->withStatus($status);
       }
