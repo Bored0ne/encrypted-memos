@@ -26,7 +26,7 @@ var makeIfNotExist = function($dir) {
 
 var rebuildWWW = function() {
 	exec('cd www && grunt build', {timeout: 100000}, function (err, stdout, stderr){
-		console.log(stdout, stderr);
+		console.log(err,stdout, stderr);
 	});
 }
 
