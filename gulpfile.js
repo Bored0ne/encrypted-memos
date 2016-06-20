@@ -70,7 +70,7 @@ gulp.task('build', function() {
 	makeIfNotExist(paths.electron);
 	if (isFirstTime()) {
 		wipe();
-		exec('cordova create cordova && cd cordova && cordova platform add browser', {timeout: 100000}, function (err, stdout, stderr){
+		exec('cordova create cordova && cd cordova && cordova platform add ios', {timeout: 100000}, function (err, stdout, stderr){
 			console.log(err + stderr + stdout);
 		});
 		fs.copySync('.resources/main.js', paths.electron + 'main.js', {timeout: 100000}, function (err){
@@ -87,7 +87,7 @@ gulp.task('serve-electron', ['build'], function() {
 });
 
 gulp.task('serve-cordova', ['build'], function() {
-		exec('cd ' + paths.cordova + ' && cordova run browser &', {timeout: 100000}, function (err, stdout, stderr){
+		exec('cd ' + paths.cordova + ' && cordova run ios &', {timeout: 100000}, function (err, stdout, stderr){
 			console.log(stdout);
 		});
 });

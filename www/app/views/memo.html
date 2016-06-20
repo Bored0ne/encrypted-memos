@@ -6,10 +6,14 @@
     </div>
     <div class="panel-body">
       <ul>
-        <li ng-repeat='memo in MemoList track by $index'>
-          {{memo.memo}}
-          <button type="button" name="Delete" class='btn btn-sm btn-danger' ng-click="DeleteMemo(memo.id)">X</button>
-        </li>
+        <div ng-repeat='(id, memo) in MemoList track by $index'>
+          <li>{{memo.memo}}
+            <!-- uncomment for server hosted memos -->
+            <!-- <button type="button" name="Delete" class='btn btn-sm btn-danger' ng-click="DeleteMemo(memo.id)">X</button> -->
+            <button type="button" name="Delete" class='btn btn-sm btn-danger pull-right' ng-click="DeleteMemo(id)">X</button>
+          </li>
+          <hr color="" />
+        </div>
       </ul>
     </div>
   </div>

@@ -14,15 +14,25 @@ angular.module('wwwApp')
       'AngularJS',
       'Karma'
     ];
+    // UNCOMMENT FOR SERVER HOSTED MEMOS
+    // $scope.LogMeIn = function LogMeIn(event){
+    //   if (!event || event.which === 13){
+    //     accountService.login($scope.username, $scope.password, function(status){
+    //       if (status){
+    //         memoService.GetMemos();
+    //         window.$('.navbar-collapse').collapse('hide');
+    //       } else {
+    //         memoService.GetMemos();
+    //       }
+    //     });
+    //   }
+    // };
     $scope.LogMeIn = function LogMeIn(event){
       if (!event || event.which === 13){
-        accountService.login($scope.username, $scope.password, function(status){
-          if (status){
-            memoService.GetMemos();
-            window.$('.navbar-collapse').collapse('hide');
-          } else {
-            memoService.GetMemos();
-          }
+        accountService.login($scope.password, function(){
+          memoService.GetMemos();
+          window.$('.navbar-collapse').collapse('hide');
+          window.$('#txtMemo').focus();
         });
       }
     };
